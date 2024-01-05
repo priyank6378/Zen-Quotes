@@ -34,7 +34,10 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   TextEditingController currentQuote = TextEditingController();
-  String currentQuoteText = "";
+  Map<String, String> currentQuoteText = {
+    "quote": "Loading...",
+    "author": "Loading...",
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +50,7 @@ class _HomePageState extends State<HomePage> {
             // backgroundColor: Color.fromARGB(255, 255, 255, 255),
             appBar: AppBar(
               title: const Text(
-                "Daily Zen Quotes",
+                "Zen Quotes",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 25,
@@ -62,12 +65,21 @@ class _HomePageState extends State<HomePage> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
-                  currentQuoteText,
+                  currentQuoteText['quote']!,
                   textAlign: TextAlign.center,
+                  style: const TextStyle(
+                      // fontWeight: FontWeight.bold,
+                      fontFamily: "cursive",
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  currentQuoteText['author']!,
+                  textAlign: TextAlign.right,
                   style: const TextStyle(
                     // fontWeight: FontWeight.bold,
                     fontFamily: "cursive",
-                    fontSize: 30,
+                    fontSize: 22,
                   ),
                 ),
                 const SizedBox(
@@ -76,9 +88,9 @@ class _HomePageState extends State<HomePage> {
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    String quote = await fetchNextQuote();
-                    print(quote);
-                    currentQuote.text = quote;
+                    final quote = await fetchNextQuote();
+                    // print(quote);
+                    currentQuote.text = quote['quote']!;
                     setState(() {
                       currentQuoteText = quote;
                     });
@@ -97,7 +109,7 @@ class _HomePageState extends State<HomePage> {
             // backgroundColor: const Color.fromARGB(255, 157, 238, 157),
             appBar: AppBar(
               title: const Text(
-                "Daily Zen Quotes",
+                "Zen Quotes",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 25,
@@ -122,14 +134,26 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-Future<String> fetchNextQuote() async {
+Future<Map<String, String>> fetchNextQuote() async {
   try {
     final res = await http.get(Uri.parse('https://zenquotes.io/api/random'));
-    if (res.statusCode != 200) return "Internet Connection Lost!";
+    if (res.statusCode != 200) {
+      return {
+        "quote": "Internet Connection Lost!",
+        "author": "Internet Connection Lost!",
+      };
+    }
     String resBody = res.body;
     final quote = (json.decode(resBody))[0]['q'];
-    return quote;
+    final author = "- " + (json.decode(resBody))[0]['a'];
+    return {
+      "quote": quote,
+      "author": author,
+    };
   } catch (e) {
-    return "Internet Connection Lost!";
+    return {
+      "quote": "Internet Connection Lost!",
+      "author": "Internet Connection Lost!",
+    };
   }
 }
